@@ -6,44 +6,31 @@ import pynbody
 import numpy as np
 from pynbody import family
 
-def slice_file(filename, output=None): 
+def slice_file(filename, output=None, block_size=10240): 
     """Take a Tipsy file and create four files of constant record length"""
-    from fractions import gcd
 
-    # get the header to extract particle partition sizes
     s = pynbody.load(filename)
+    f = open(filename)
+    f.seek(32)
 
-    prev_read_bytes = 32 # the header skip bytes
 
     for fam, dtype in ((family.gas, s._g_dtype), 
                         (family.dm, s._d_dtype), 
                         (family.star, s._s_dtype)):
-
-        skip_bytes = prev_read_bytes 
-        read_bytes = dtype.itemsize*len(s[fam])
-
-        # need the greatest common denominator for block size
-        block_size = gcd(read_bytes, skip_bytes)
-        skip_blocks = skip_bytes/block_size
-        read_blocks = read_bytes/block_size
-
-        if output is None:
-            outfile = filename+'_%s'%(fam.name)
+    
+        if output is None:     
+            outfile = filename+'_'+fam.name
         else: 
             outfile = output
+        out = open(outfile, 'wb')
     
-        print "reading %s, skipping %d bytes, reading %d bytes"%(fam, skip_bytes, read_bytes)
-        res = subprocess.check_output(['dd', 
-                                        'if=%s'%filename, 
-                                        'of=%s_%s'%(outfile, fam.name),
-                                        'ibs=%d'%block_size,
-                                        'obs=1m',
-                                        'skip=%d'%skip_blocks,
-                                        'count=%d'%read_blocks],
-                                        stderr=subprocess.STDOUT)
-        prev_read_bytes = read_bytes
-
-        print res
+        to_read = dtype.itemsize*len(s[fam])
+        print to_read
+        while to_read > 0 :
+            out.write(f.read(min(block_size, to_read)))
+            to_read -= block_size
+        out.close()
+    f.close()
 
 
 if __name__ == "__main__":
