@@ -1,0 +1,21 @@
+# Some default options for Spark 
+
+spark.executor.memory 8g
+spark.executor.instances 100
+spark.executor.cores 4
+
+spark.storage.memoryFraction 0.2
+spark.shuffle.memoryFraction 0.5
+
+spark.yarn.executor.memoryOverhead 2048
+spark.yarn.am.memory  8g
+spark.yarn.am.cores  12
+spark.yarn.am.memoryOverhead 1000
+spark.master yarn
+
+spark.app.name salmonella
+spark.akka.frameSize 1000
+
+spark.driver.extraClassPath com.databricks:spark-csv_2.10:1.3.0
+spark.executor.extraClassPath com.databricks:spark-csv_2.10:1.3.0
+
