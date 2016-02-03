@@ -60,10 +60,12 @@ if __name__ == "__main__":
     time_in = time()
     dm_rdd.count()
     time_tot = time()-time_in
-    sc.stop()
-    print 'processing took %.2f seconds, %.2f Gb/s'%(time_tot, size/float(time_tot)/1e9)
-    
     write_to_db('io_timing.db', filesystem, ncores, time_in, time_tot)
+    print 'processing took %.2f seconds, %.2f Gb/s'%(time_tot, size/float(time_tot)/1e9)
+    sc.stop()
+
+    
+
 
 
 

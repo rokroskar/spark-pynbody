@@ -5,6 +5,8 @@ import matplotlib.pylab as plt
 from  pickle import dump
 import sys
 import numpy as np
+import sqlite3
+import matplotlib.patches as mpatches
 
 class bc:
     HEADER = '\033[95m'
@@ -54,28 +56,37 @@ def run_io_benchmark(fs_types, executors):
                 dump(times, f)
         
 
+def get_db_set(c): 
+    return set(get_db_list(c))
 
-def plot_data():
+def get_db_list(c):
+    return map(lambda x: x[0], c.fetchall())
+
+def plot_data(db_name):
     from glob import glob
 
-    hdfs_files = glob('hdfs_*')
-    lustre_files = glob('lustre_*')
+    conn = sqlite3.connect(db_name)
+    c = conn.cursor()
 
-    hdfs_data = {}
-    lustre_data = {}
+    filesystems = get_db_set(c.execute("select filesystem from io_timing"))
+    executor_dict = {fs: get_db_set(c.execute("select num_executors from io_timing where filesystem = '%s'"%fs)) for fs in filesystems} 
 
+    data = {fs: {num_executors: np.array(get_db_list(c.execute("select elapsed_time from io_timing where filesystem = '{fs}' and num_executors = {num_executors}".format(fs=fs, num_executors=num_executors)))) for num_executors in executor_dict[fs]} for fs in filesystems}
 
     plt.style.use('fivethirtyeight')
-    plt.switch_backend('pdf')
-    
-    plt.figure(figsize=(12,8))
-    plt.plot(executors, size/np.array(times['lustre'])/1e9, label = 'lustre')
-    plt.plot(executors, size/np.array(times['hdfs'])/1e9, label = 'hdfs')
-    plt.xlabel('Number of executors')
-    plt.ylabel('Throughput (Gb/s)')
-    plt.legend()
-    plt.savefig('io_comparison.png')
+    fig, axs = plt.subplots()
 
+    color_cycler = axs._get_lines.prop_cycler
+    legend_handles = []
+    for fs in filesystems: 
+        color = next(color_cycler)['color']
+        legend_handles.append(mpatches.Circle((0,0), 0.5, color=color, label=fs))
+        for nx, points in data[fs].iteritems():
+            plt.scatter(np.array([nx]*len(points)),size/points/1e9, color = color)
+            
+    plt.legend(handles=legend_handles)
+    plt.xlabel('Number of nodes')
+    plt.ylabel('Gb/s')
 
 if __name__ == '__main__':
     import argparse
