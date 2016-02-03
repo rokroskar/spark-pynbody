@@ -24,23 +24,6 @@ size =  220150628352
 templates = {'lustre': 'bsub -W 00:10 -n {ncores} -R span[ptile=4] -I /cluster/apps/spark/scripts/lsf-spark-submit.sh --executor-memory 3G ./read_sim.py lustre {ncores}',
              'hdfs': '/cluster/home03/sdid/roskarr/spark-1.6.0-bin-hadoop2.6/bin/spark-submit --num-executors {num_executors} --executor-cores 4 --master yarn ./read_sim.py hdfs {ncores}'}
 
-if __name__ == '__main__':
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Run a series of I/O tests")
-
-    parser.add_argument('executors', type=int, nargs='+', help='executor counts to run I/O on')
-
-    parser.add_argument('--fs_types', type=str, nargs='+', dest='fs_types', default='hdfs')
-
-    args = parser.parse_args()
-    
-    executors = args.executors
-    fs_types = args.fs_types
-
-    run_io_benchmark(fs_types, executors)
-
-
 def run_io_benchmark(fs_types, executors): 
 
     for fs_type in fs_types: 
@@ -81,9 +64,6 @@ def plot_data():
     hdfs_data = {}
     lustre_data = {}
 
-    for filename in hdfs_files:
-        with open(filename) as f: 
-            ncores = 
 
     plt.style.use('fivethirtyeight')
     plt.switch_backend('pdf')
@@ -95,4 +75,22 @@ def plot_data():
     plt.ylabel('Throughput (Gb/s)')
     plt.legend()
     plt.savefig('io_comparison.png')
+
+
+if __name__ == '__main__':
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Run a series of I/O tests")
+
+    parser.add_argument('executors', type=int, nargs='+', help='executor counts to run I/O on')
+
+    parser.add_argument('--fs_types', type=str, nargs='+', dest='fs_types', default='hdfs')
+
+    args = parser.parse_args()
+    
+    executors = args.executors
+    fs_types = args.fs_types
+
+    run_io_benchmark(fs_types, executors)
+
 
