@@ -74,7 +74,7 @@ def plot_data(db_name):
     data = {fs: {num_executors: np.array(get_db_list(c.execute("select elapsed_time from io_timing where filesystem = '{fs}' and num_executors = {num_executors}".format(fs=fs, num_executors=num_executors)))) for num_executors in executor_dict[fs]} for fs in filesystems}
 
     plt.style.use('fivethirtyeight')
-    fig, axs = plt.subplots()
+    fig, axs = plt.subplots(figsize=(16,9))
 
     color_cycler = axs._get_lines.prop_cycler
     legend_handles = []
